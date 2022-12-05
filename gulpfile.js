@@ -2,12 +2,18 @@ const { src, dest, watch, series, parallel } = require("gulp"),
     sass = require("gulp-sass")(require("sass")),
     cssnano = require("gulp-cssnano"),
     autoprefixer = require("gulp-autoprefixer"),
-    uglify = require("gulp-uglify");
+    uglify = require("gulp-uglify"),
+    pug = require("gulp-pug");
 
 const srcPath = {
     sass: "./app/styles/**/*.sass",
     js: "./app/scripts/*.js",
+    pug: "./app/pugs/*.pug",
 };
+
+function buildHTML() {
+    return src(srcPath.pug).pipe(pug()).pipe(dest("./"));
+}
 
 function buildStyles() {
     return src(srcPath.sass, { sourcemaps: true })
@@ -22,7 +28,13 @@ function minifyJS() {
 }
 
 function watchFiles() {
-    watch([srcPath.sass, srcPath.js], series(parallel(buildStyles, minifyJS)));
+    watch(
+        [srcPath.sass, srcPath.js, srcPath.pug],
+        series(parallel(buildStyles, minifyJS, buildHTML))
+    );
 }
 
-exports.default = series(parallel(buildStyles, minifyJS), watchFiles);
+exports.default = series(
+    parallel(buildStyles, minifyJS, buildHTML),
+    watchFiles
+);
